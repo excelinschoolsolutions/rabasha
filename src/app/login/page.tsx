@@ -1,7 +1,22 @@
+"use client";
+
 import Link from "next/link";
+import { useState, useTransition } from "react";
 import { Button } from "@/components/Button";
+import { loginPioneer } from "./actions";
 
 export default function LoginPage() {
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+
+  function handleSubmit(formData: FormData) {
+    setError(null);
+    startTransition(async () => {
+      const result = await loginPioneer(formData);
+      if (result?.error) setError(result.error);
+    });
+  }
+
   return (
     <main className="mx-auto flex min-h-screen max-w-sm flex-col justify-center px-6 py-16">
       <div className="mb-8 text-center">
@@ -15,10 +30,12 @@ export default function LoginPage() {
         </p>
       </div>
 
-      {/* Not wired to Supabase yet — that happens in Stage 3 */}
-      <form className="space-y-4">
+      <form action={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="email" className="mb-1 block text-sm font-medium text-onSurface">
+          <label
+            htmlFor="email"
+            className="mb-1 block text-sm font-medium text-onSurface"
+          >
             Email address
           </label>
           <input
@@ -31,7 +48,10 @@ export default function LoginPage() {
         </div>
         <div>
           <div className="mb-1 flex items-center justify-between">
-            <label htmlFor="password" className="text-sm font-medium text-onSurface">
+            <label
+              htmlFor="password"
+              className="text-sm font-medium text-onSurface"
+            >
               Password
             </label>
             <Link href="/forgot-password" className="text-sm text-secondary">
@@ -47,8 +67,14 @@ export default function LoginPage() {
           />
         </div>
 
-        <Button type="submit" className="w-full">
-          Log in
+        {error && (
+          <p className="rounded-lg bg-error-container px-4 py-3 text-sm text-error">
+            {error}
+          </p>
+        )}
+
+        <Button type="submit" className="w-full" disabled={isPending}>
+          {isPending ? "Logging in…" : "Log in"}
         </Button>
       </form>
 

@@ -1,20 +1,53 @@
+"use client";
+
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useState, useTransition } from "react";
 import { Button } from "@/components/Button";
+import { registerPioneer } from "./actions";
 
 export default function JoinPage() {
+  return (
+    <Suspense fallback={null}>
+      <JoinForm />
+    </Suspense>
+  );
+}
+
+function JoinForm() {
+  const searchParams = useSearchParams();
+  const referredByCode = searchParams.get("ref") ?? "";
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+
+  function handleSubmit(formData: FormData) {
+    setError(null);
+    startTransition(async () => {
+      const result = await registerPioneer(formData);
+      if (result?.error) setError(result.error);
+    });
+  }
+
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6 py-16">
       <div className="mb-8 text-center">
         <p className="text-sm font-semibold text-secondary">Step 1 of 2</p>
-        <h1 className="mt-2 text-headline-lg-mobile">Let&rsquo;s get you started</h1>
+        <h1 className="mt-2 text-headline-lg-mobile">
+          Let&rsquo;s get you started
+        </h1>
         <p className="mt-2 text-sm text-onSurface-variant">
           Become a Mụta Pioneer in less than 2 minutes.
         </p>
+        {referredByCode && (
+          <p className="mt-2 text-xs text-secondary">
+            Referred by a Pioneer — thanks for joining through them!
+          </p>
+        )}
       </div>
 
-      {/* Note: this form isn't wired to Supabase yet — that happens in
-          Stage 3. For now it just shows the fields and layout. */}
-      <form className="space-y-4">
+      <form action={handleSubmit} className="space-y-4">
+        <input type="hidden" name="referredByCode" value={referredByCode} />
+
         <Field label="Full name" name="fullName" type="text" required />
         <Field label="Email address" name="email" type="email" required />
         <Field label="Phone number" name="phone" type="tel" required />
@@ -48,8 +81,14 @@ export default function JoinPage() {
           I agree to receive Mụta Pioneer updates.
         </label>
 
-        <Button type="submit" className="w-full">
-          Continue to contribution
+        {error && (
+          <p className="rounded-lg bg-error-container px-4 py-3 text-sm text-error">
+            {error}
+          </p>
+        )}
+
+        <Button type="submit" className="w-full" disabled={isPending}>
+          {isPending ? "Creating your account…" : "Continue to contribution"}
         </Button>
       </form>
 
@@ -80,7 +119,10 @@ function Field({
 }) {
   return (
     <div>
-      <label htmlFor={name} className="mb-1 block text-sm font-medium text-onSurface">
+      <label
+        htmlFor={name}
+        className="mb-1 block text-sm font-medium text-onSurface"
+      >
         {label}
       </label>
       <input
