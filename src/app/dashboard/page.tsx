@@ -1,5 +1,6 @@
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
+import { logout } from "@/lib/auth-actions";
 
 const journey = [
   { label: "Joined waitlist", done: true },
@@ -32,6 +33,11 @@ export default function DashboardPage() {
           <span className="text-sm text-onSurface-variant">
             Welcome, Chidinma
           </span>
+          <form action={logout}>
+            <button className="text-sm text-onSurface-variant hover:text-onSurface hover:underline">
+              Log out
+            </button>
+          </form>
         </div>
       </header>
 
