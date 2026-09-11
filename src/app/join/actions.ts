@@ -2,7 +2,6 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { generateReferralCode } from "@/lib/referral";
 
 export async function registerPioneer(formData: FormData) {
   const fullName = String(formData.get("fullName") || "").trim();
@@ -27,55 +26,37 @@ export async function registerPioneer(formData: FormData) {
 
   const supabase = await createClient();
 
-  // 1. Create the auth user.
-  const { data: authData, error: authError } = await supabase.auth.signUp({
+  // All profile fields ride along as auth user metadata. A database
+  // trigger (handle_new_pioneer) reads this metadata and creates the
+  // public.pioneers row with elevated privileges — this avoids relying
+  // on a client session that may not exist yet if email confirmation
+  // is required.
+  const { data, error: authError } = await supabase.auth.signUp({
     email,
     password,
+    options: {
+      data: {
+        full_name: fullName,
+        phone,
+        university: university || "Rivers State University",
+        department,
+        level,
+        referred_by_code: referredByCode || null,
+      },
+    },
   });
 
-  if (authError || !authData.user) {
-    return { error: authError?.message ?? "Couldn't create your account." };
+  if (authError) {
+    return { error: authError.message };
+  }
+  if (!data.user) {
+    return { error: "Couldn't create your account. Please try again." };
   }
 
-  // 2. Look up who referred them, if a referral code was passed in.
-  let referredBy: string | null = null;
-  if (referredByCode) {
-    const { data: referrer } = await supabase
-      .from("pioneers")
-      .select("id")
-      .eq("referral_code", referredByCode)
-      .maybeSingle();
-    referredBy = referrer?.id ?? null;
-  }
-
-  // 3. Generate a unique referral code for this new pioneer, retrying on
-  // the rare collision.
-  let referralCode = generateReferralCode();
-  for (let attempt = 0; attempt < 5; attempt++) {
-    const { data: existing } = await supabase
-      .from("pioneers")
-      .select("id")
-      .eq("referral_code", referralCode)
-      .maybeSingle();
-    if (!existing) break;
-    referralCode = generateReferralCode();
-  }
-
-  // 4. Create the pioneer profile row, status starts as pending_payment.
-  const { error: insertError } = await supabase.from("pioneers").insert({
-    user_id: authData.user.id,
-    full_name: fullName,
-    email,
-    phone,
-    university: university || "Rivers State University",
-    department,
-    level,
-    referral_code: referralCode,
-    referred_by: referredBy,
-  });
-
-  if (insertError) {
-    return { error: insertError.message };
+  // If email confirmation is required, there's no session yet — send
+  // them to check their inbox instead of straight to checkout.
+  if (!data.session) {
+    redirect("/join/check-email");
   }
 
   redirect("/checkout");
