@@ -8,9 +8,10 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Run on every route except static assets, so sessions stay fresh
-     * everywhere, while keeping the matcher cheap.
+     * Run on every route except static assets and server-to-server
+     * endpoints (API routes, Paystack callback/webhook) that don't need
+     * a browser session refreshed.
      */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|api/|checkout/callback|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
