@@ -12,6 +12,6 @@ export const config = {
      * endpoints (API routes, Paystack callback/webhook) that don't need
      * a browser session refreshed.
      */
-    "/((?!_next/static|_next/image|favicon.ico|api/|checkout/callback|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|api/|webhook/|checkout/callback|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
