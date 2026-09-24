@@ -4,8 +4,6 @@ import { ButtonHTMLAttributes } from "react";
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: "primary" | "secondary" | "ghost";
   href?: string;
-  target?: string;
-  rel?: string;
 };
 
 const styles = {
@@ -19,8 +17,6 @@ const styles = {
 export function Button({
   variant = "primary",
   href,
-  target,
-  rel,
   className = "",
   children,
   ...props
@@ -29,7 +25,7 @@ export function Button({
 
   if (href) {
     return (
-      <Link href={href} target={target} rel={rel} className={base}>
+      <Link href={href} className={base}>
         {children}
       </Link>
     );

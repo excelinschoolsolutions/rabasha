@@ -12,16 +12,13 @@ export async function loginPioneer(formData: FormData) {
   }
 
   const supabase = await createClient();
-  const { data: loginData, error } = await supabase.auth.signInWithPassword({
+  const { error } = await supabase.auth.signInWithPassword({
     email,
     password,
   });
 
-  console.log("[loginPioneer] signInWithPassword result:", { userId: loginData?.user?.id, error: error?.message, errorCode: error?.status });
-
   if (error) {
-    console.warn("[loginPioneer] Supabase auth error:", error.message);
-    return { error: error.message || "Incorrect email or password." };
+    return { error: "Incorrect email or password." };
   }
 
   redirect("/dashboard");

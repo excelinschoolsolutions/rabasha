@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { motion } from "framer-motion";
 import { Button } from "@/components/Button";
+import { SelectionTile } from "@/components/SelectionTile";
 import { startCheckout } from "./actions";
 
 const tiers = [
@@ -30,40 +32,31 @@ export default function CheckoutPage() {
 
   return (
     <main className="mx-auto flex min-h-screen max-w-lg flex-col justify-center px-6 py-16">
-      <div className="mb-8 text-center">
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: "easeOut" }}
+        className="mb-8 text-center"
+      >
         <p className="text-sm font-semibold text-secondary">Step 2 of 2</p>
         <h1 className="mt-2 text-headline-lg-mobile">
           Claim your Pioneer spot
         </h1>
-      </div>
+      </motion.div>
 
       <form action={handleSubmit}>
         <div className="grid grid-cols-2 gap-3">
           {tiers.map((tier) => (
-            <label
+            <SelectionTile
               key={tier.label}
-              className={`cursor-pointer rounded-card border p-4 text-center ${
-                !customAmount && selected === tier.amount
-                  ? "border-secondary bg-secondary-container"
-                  : "border-outline-variant bg-white"
-              }`}
-            >
-              <input
-                type="radio"
-                name="tier"
-                value={tier.amount}
-                checked={!customAmount && selected === tier.amount}
-                onChange={() => {
-                  setSelected(tier.amount);
-                  setCustomAmount("");
-                }}
-                className="sr-only"
-              />
-              <p className="text-lg font-bold text-onSurface">
-                ₦{tier.amount.toLocaleString()}
-              </p>
-              <p className="text-sm text-onSurface-variant">{tier.label}</p>
-            </label>
+              label={`₦${tier.amount.toLocaleString()}`}
+              sublabel={tier.label}
+              selected={!customAmount && selected === tier.amount}
+              onClick={() => {
+                setSelected(tier.amount);
+                setCustomAmount("");
+              }}
+            />
           ))}
         </div>
 
@@ -86,9 +79,13 @@ export default function CheckoutPage() {
         </div>
 
         {error && (
-          <p className="mt-4 rounded-lg bg-error-container px-4 py-3 text-sm text-error">
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="mt-4 rounded-lg bg-error-container px-4 py-3 text-sm text-error"
+          >
             {error}
-          </p>
+          </motion.p>
         )}
 
         <Button type="submit" className="mt-6 w-full" disabled={isPending}>

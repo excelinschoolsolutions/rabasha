@@ -72,8 +72,12 @@ const config: Config = {
         "headline-md": ["22px", { lineHeight: "28px", letterSpacing: "-0.01em", fontWeight: "700" }],
       },
       borderRadius: {
-        card: "16px",
+        card: "20px",
         pill: "999px",
+      },
+      boxShadow: {
+        soft: "0 2px 10px rgba(13, 28, 46, 0.06)",
+        floating: "0 8px 24px rgba(13, 28, 46, 0.12)",
       },
     },
   },

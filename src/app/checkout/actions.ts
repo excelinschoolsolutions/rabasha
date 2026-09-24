@@ -14,13 +14,9 @@ export async function startCheckout(formData: FormData) {
   const supabase = await createClient();
   const {
     data: { user },
-    error: userError,
   } = await supabase.auth.getUser();
 
-  console.log("[startCheckout] getUser result:", { userId: user?.id, email: user?.email, error: userError?.message });
-
   if (!user || !user.email) {
-    console.log("[startCheckout] No user session found, redirecting to login");
     redirect("/login");
   }
 
@@ -49,10 +45,6 @@ export async function startCheckout(formData: FormData) {
       amountNaira: amount,
       reference,
       callbackUrl: `${siteUrl}/checkout/callback`,
-      metadata: {
-        product: "muta",
-        order_id: reference,
-      },
     });
     authorizationUrl = result.authorization_url;
   } catch (err) {

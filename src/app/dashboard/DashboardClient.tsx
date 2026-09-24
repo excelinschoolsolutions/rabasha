@@ -1,8 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Send, Share2 } from "lucide-react";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
+import { BottomNav } from "@/components/BottomNav";
+import { PrimaryActionCard } from "@/components/PrimaryActionCard";
+import { IconLinkCard } from "@/components/IconLinkCard";
+import { FadeUp } from "@/components/FadeUp";
 import { logoutPioneer } from "@/lib/auth-actions";
 
 interface PioneerData {
@@ -98,11 +104,18 @@ function SharePopup({
   ];
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
       onClick={onClose}
     >
-      <div
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 12 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 12 }}
+        transition={{ duration: 0.2, ease: "easeOut" }}
         className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
@@ -134,16 +147,17 @@ function SharePopup({
 
         <div className="flex flex-col gap-2">
           {socials.map((s) => (
-            <a
+            <motion.a
               key={s.name}
               href={s.href}
               target="_blank"
               rel="noopener noreferrer"
+              whileTap={{ scale: 0.97 }}
               className={`flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition ${s.color}`}
             >
               <span>{s.icon}</span>
               <span>Share on {s.name}</span>
-            </a>
+            </motion.a>
           ))}
         </div>
 
@@ -153,8 +167,8 @@ function SharePopup({
         >
           Close
         </button>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
 
@@ -262,16 +276,18 @@ export function DashboardClient({
   }
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-10">
+    <main className="mx-auto max-w-4xl px-6 pb-32 pt-10">
       {/* Share Popup */}
-      {showSharePopup && (
-        <SharePopup
-          pioneer={pioneer}
-          formattedPioneerNumber={formattedPioneerNumber}
-          memberSince={memberSince}
-          onClose={() => setShowSharePopup(false)}
-        />
-      )}
+      <AnimatePresence>
+        {showSharePopup && (
+          <SharePopup
+            pioneer={pioneer}
+            formattedPioneerNumber={formattedPioneerNumber}
+            memberSince={memberSince}
+            onClose={() => setShowSharePopup(false)}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Header */}
       <header className="mb-8 flex items-center justify-between">
@@ -284,7 +300,7 @@ export function DashboardClient({
           <span className="rounded-pill bg-secondary-container px-3 py-1 text-xs font-semibold text-secondary-onContainer">
             Active Pioneer
           </span>
-          <span className="text-sm text-onSurface-variant">
+          <span className="hidden text-sm text-onSurface-variant sm:inline">
             Welcome, {pioneer.full_name?.split(" ")[0] || "Pioneer"}
           </span>
           <form action={logoutPioneer}>
@@ -299,56 +315,89 @@ export function DashboardClient({
       </header>
 
       {/* Overview */}
-      <section className="grid gap-6 md:grid-cols-[280px_1fr]">
-        <div
-          className="rounded-card p-6 text-white shadow-sm"
-          style={{ background: "linear-gradient(135deg, #1e3a5f, #0a7a5a)" }}
-        >
-          <p className="text-xs font-semibold uppercase tracking-wide text-white/60">
-            Pioneer
-          </p>
-          <p className="mt-1 text-2xl font-extrabold">{formattedPioneerNumber}</p>
-          <p className="mt-4 font-semibold capitalize">{pioneer.full_name}</p>
-          <p className="text-sm text-white/70">{pioneer.university}</p>
-          <p className="text-xs text-white/50">
-            {pioneer.department} • {pioneer.level}
-          </p>
-          <p className="mt-4 text-xs text-white/50">Since {memberSince}</p>
-          <Button
-            variant="secondary"
-            className="mt-4 w-full"
+      <FadeUp id="overview">
+        <PrimaryActionCard
+          title="Suggest a feature"
+          subtitle="Help shape what we build into Mụta next"
+          onClick={() => setShowSuggestModal(true)}
+        />
+
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <IconLinkCard
+            icon={Send}
+            iconBg="#dbeafe"
+            iconColor="#0088cc"
+            title="Telegram Community"
+            subtitle="Get updates & tips"
+            href="https://t.me/excelinschool"
+          />
+          <button
             onClick={() => setShowSharePopup(true)}
+            className="w-full text-left"
           >
-            🃏 Share my Pioneer card
-          </Button>
+            <IconLinkCard
+              icon={Share2}
+              iconBg="#dcfce7"
+              iconColor="#16a34a"
+              title="Share my Pioneer card"
+              subtitle={`${formattedPioneerNumber} · ${pioneer.full_name}`}
+              href="#"
+            />
+          </button>
         </div>
 
-        <Card>
-          <h2 className="font-semibold text-onSurface">Your journey</h2>
-          <ul className="mt-4 space-y-2">
-            {journey.map((step) => (
-              <li
-                key={step.label}
-                className={`flex items-center gap-2 text-sm ${
-                  step.done ? "text-onSurface" : "text-onSurface-variant"
-                }`}
-              >
-                <span className={step.done ? "text-secondary font-bold" : ""}>
-                  {step.done ? "✓" : "○"}
-                </span>
-                {step.label}
-              </li>
-            ))}
-          </ul>
-        </Card>
-      </section>
+        <div className="mt-4 grid gap-6 md:grid-cols-[280px_1fr]">
+          <div
+            className="rounded-card p-6 text-white shadow-soft"
+            style={{ background: "linear-gradient(135deg, #1e3a5f, #0a7a5a)" }}
+          >
+            <p className="text-xs font-semibold uppercase tracking-wide text-white/60">
+              Pioneer
+            </p>
+            <p className="mt-1 text-2xl font-extrabold">{formattedPioneerNumber}</p>
+            <p className="mt-4 font-semibold capitalize">{pioneer.full_name}</p>
+            <p className="text-sm text-white/70">{pioneer.university}</p>
+            <p className="text-xs text-white/50">
+              {pioneer.department} • {pioneer.level}
+            </p>
+            <p className="mt-4 text-xs text-white/50">Since {memberSince}</p>
+            <Button
+              variant="secondary"
+              className="mt-4 w-full"
+              onClick={() => setShowSharePopup(true)}
+            >
+              🃏 Share my Pioneer card
+            </Button>
+          </div>
+
+          <Card>
+            <h2 className="font-semibold text-onSurface">Your journey</h2>
+            <ul className="mt-4 space-y-2">
+              {journey.map((step) => (
+                <li
+                  key={step.label}
+                  className={`flex items-center gap-2 text-sm ${
+                    step.done ? "text-onSurface" : "text-onSurface-variant"
+                  }`}
+                >
+                  <span className={step.done ? "text-secondary font-bold" : ""}>
+                    {step.done ? "✓" : "○"}
+                  </span>
+                  {step.label}
+                </li>
+              ))}
+            </ul>
+          </Card>
+        </div>
+      </FadeUp>
 
       {/* Referrals */}
-      <section className="mt-8">
+      <FadeUp id="referrals" delay={0.05} className="mt-10">
+        <h2 className="mb-4 font-semibold text-onSurface">Referrals</h2>
         <Card className="bg-secondary-container">
-          <h2 className="font-semibold text-secondary-onContainer">
+          <h3 className="font-semibold text-secondary-onContainer">
             Refer and earn — a Pioneer-only benefit
-          </h2>
+          </h3>
           <p className="mt-2 text-sm text-secondary-onContainer/80">
             As a Pioneer, you can earn commission on referrals once Mụta
             launches. Students who join after launch can still refer
@@ -361,13 +410,15 @@ export function DashboardClient({
             <div className="mt-2 flex items-center justify-between gap-2 rounded-lg border border-outline-variant bg-surface-low px-3 py-2 text-sm">
               <span className="truncate font-mono text-xs">{referralLink}</span>
             </div>
-            <Button
-              variant="secondary"
-              className="mt-3 w-full"
-              onClick={handleCopy}
-            >
-              {copied ? "Copied to Clipboard! ✓" : "Copy referral link"}
-            </Button>
+            <motion.div whileTap={{ scale: 0.98 }}>
+              <Button
+                variant="secondary"
+                className="mt-3 w-full"
+                onClick={handleCopy}
+              >
+                {copied ? "Copied to Clipboard! ✓" : "Copy referral link"}
+              </Button>
+            </motion.div>
           </Card>
           <Card>
             <p className="text-sm text-onSurface-variant">
@@ -378,10 +429,10 @@ export function DashboardClient({
             </p>
           </Card>
         </div>
-      </section>
+      </FadeUp>
 
       {/* Feature Lab */}
-      <section className="mt-8">
+      <FadeUp id="feature-lab" delay={0.1} className="mt-10">
         <div className="mb-4 flex items-center justify-between">
           <div>
             <h2 className="font-semibold text-onSurface">Feature Lab</h2>
@@ -389,50 +440,59 @@ export function DashboardClient({
               Like features you want built, or suggest your own ideas.
             </p>
           </div>
-          <button
+          <motion.button
+            whileTap={{ scale: 0.96 }}
             onClick={() => setShowSuggestModal(true)}
             className="flex items-center gap-2 rounded-pill border border-secondary/40 bg-secondary-container px-4 py-2 text-sm font-bold text-secondary transition hover:bg-secondary hover:text-white"
           >
             💡 Suggest an idea
-          </button>
+          </motion.button>
         </div>
 
         {/* Suggest Modal */}
-        {showSuggestModal && (
-          <div className="mb-6 rounded-card border border-secondary/30 bg-secondary-container/20 p-5">
-            <h3 className="text-sm font-bold text-onSurface">Suggest a Feature for Mụta</h3>
-            <form onSubmit={handleSuggestFeature} className="mt-3 space-y-3">
-              <input
-                type="text"
-                placeholder="Feature title (e.g. Past Questions AI Solver)"
-                value={suggestTitle}
-                onChange={(e) => setSuggestTitle(e.target.value)}
-                required
-                className="w-full rounded-lg border border-outline-variant bg-white px-3 py-2 text-sm text-onSurface outline-none focus:border-secondary"
-              />
-              <textarea
-                placeholder="Explain why this feature would help Nigerian students study better..."
-                value={suggestDesc}
-                onChange={(e) => setSuggestDesc(e.target.value)}
-                required
-                rows={3}
-                className="w-full rounded-lg border border-outline-variant bg-white px-3 py-2 text-sm text-onSurface outline-none focus:border-secondary"
-              />
-              <div className="flex gap-2">
-                <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? "Submitting..." : "Submit Idea"}
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => setShowSuggestModal(false)}
-                >
-                  Cancel
-                </Button>
-              </div>
-            </form>
-          </div>
-        )}
+        <AnimatePresence>
+          {showSuggestModal && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+              className="mb-6 overflow-hidden rounded-card border border-secondary/30 bg-secondary-container/20 p-5"
+            >
+              <h3 className="text-sm font-bold text-onSurface">Suggest a Feature for Mụta</h3>
+              <form onSubmit={handleSuggestFeature} className="mt-3 space-y-3">
+                <input
+                  type="text"
+                  placeholder="Feature title (e.g. Past Questions AI Solver)"
+                  value={suggestTitle}
+                  onChange={(e) => setSuggestTitle(e.target.value)}
+                  required
+                  className="w-full rounded-lg border border-outline-variant bg-white px-3 py-2 text-sm text-onSurface outline-none focus:border-secondary"
+                />
+                <textarea
+                  placeholder="Explain why this feature would help Nigerian students study better..."
+                  value={suggestDesc}
+                  onChange={(e) => setSuggestDesc(e.target.value)}
+                  required
+                  rows={3}
+                  className="w-full rounded-lg border border-outline-variant bg-white px-3 py-2 text-sm text-onSurface outline-none focus:border-secondary"
+                />
+                <div className="flex gap-2">
+                  <Button type="submit" disabled={isSubmitting}>
+                    {isSubmitting ? "Submitting..." : "Submit Idea"}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => setShowSuggestModal(false)}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <div className="space-y-3">
           {features.length === 0 ? (
@@ -440,10 +500,13 @@ export function DashboardClient({
               No feature ideas submitted yet. Be the first to suggest one!
             </p>
           ) : (
-            features.map((f) => (
-              <div
+            features.map((f, i) => (
+              <motion.div
                 key={f.id}
-                className="flex items-center justify-between rounded-card border border-outline-variant bg-white px-5 py-4 transition hover:border-secondary/50"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.25, delay: i * 0.03 }}
+                className="flex items-center justify-between rounded-card border border-outline-variant bg-white px-5 py-4 shadow-soft transition hover:border-secondary/50"
               >
                 <div>
                   <span className="font-medium text-onSurface">{f.title}</span>
@@ -456,7 +519,8 @@ export function DashboardClient({
                     </span>
                   )}
                 </div>
-                <button
+                <motion.button
+                  whileTap={{ scale: 0.9 }}
                   onClick={() => handleVote(f.id)}
                   className={`flex items-center gap-1.5 rounded-pill border px-4 py-2 text-sm font-bold transition ${
                     f.userVote === "up"
@@ -467,16 +531,16 @@ export function DashboardClient({
                 >
                   <span className="text-base leading-none">{f.userVote === "up" ? "❤️" : "🤍"}</span>
                   <span className="font-bold">{f.votesCount}</span>
-                </button>
-              </div>
+                </motion.button>
+              </motion.div>
             ))
           )}
         </div>
-      </section>
+      </FadeUp>
 
       {/* Platform Updates */}
       {updates.length > 0 && (
-        <section className="mt-8">
+        <FadeUp id="updates" delay={0.15} className="mt-10">
           <h2 className="mb-4 font-semibold text-onSurface">Platform Updates</h2>
           <div className="space-y-3">
             {updates.map((update) => (
@@ -493,25 +557,10 @@ export function DashboardClient({
               </Card>
             ))}
           </div>
-        </section>
+        </FadeUp>
       )}
 
-      {/* Telegram Community */}
-      <section className="mt-8">
-        <Card className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-          <div>
-            <h2 className="font-semibold text-onSurface">
-              Join the Pioneer Telegram community ✈️
-            </h2>
-            <p className="mt-1 text-sm text-onSurface-variant">
-              Get updates, ask questions, and meet other Pioneers from your university.
-            </p>
-          </div>
-          <Button href="https://t.me/excelinschool" target="_blank" rel="noopener noreferrer">
-            Join Telegram group
-          </Button>
-        </Card>
-      </section>
+      <BottomNav />
     </main>
   );
 }
